@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DON'T LOOK BEHIND YOU</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="fxv"></div>
+<canvas id="fxg" width="192" height="108"></canvas>
+<div id="fxf"></div>
+<div id="fxfade"></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="objective"><span class="lbl">OBJECTIVE</span><span id="objText"></span></div>
+  <div id="floorlbl"></div>
+  <div id="bars">
+    <div class="bar"><i id="hpBar"></i><span>HEALTH</span></div>
+    <div class="bar"><i id="stBar"></i><span>STAMINA</span></div>
+    <div class="bar"><i id="baBar"></i><span id="baTxt">FLASHLIGHT</span></div>
+  </div>
+  <div id="slots"></div>
+  <div id="cross"></div>
+  <div id="prompt"></div>
+  <div id="toast"></div>
+  <div id="fireTimer" class="hidden"></div>
+  <div id="gaze" class="hidden"><div class="gtxt">HOLD ITS GAZE</div><div class="gbar"><i id="gazeBar"></i></div></div>
+  <div id="keyhelp">F light &nbsp; R battery &nbsp; H medkit &nbsp; E interact &nbsp; TAB inventory &nbsp; J journal</div>
+</div>
+
+<!-- Loading -->
+<section id="loading" class="screen">
+  <h2>DON'T LOOK BEHIND YOU</h2>
+  <div class="lbar"><i id="loadBar"></i></div>
+  <p id="loadTip">Building the building...</p>
+</section>
+
+<!-- Main menu -->
+<section id="menu" class="screen hidden">
+  <div class="menu-bg"></div>
+  <h1 class="title"><span>DON'T</span> <span>LOOK</span> <span class="big">BEHIND</span> <span>YOU</span></h1>
+  <p class="tagline">It only moves when you are not looking.</p>
+  <div class="menu-btns">
+    <button id="btnNew">NEW GAME</button>
+    <button id="btnCont">CONTINUE</button>
+    <button id="btnSet">SETTINGS</button>
+    <button id="btnHelp">HOW TO PLAY</button>
+  </div>
+  <p class="foot">Use headphones. Best played in a dark room. &nbsp;|&nbsp; <span id="endCount"></span></p>
+</section>
+
+<!-- How to play -->
+<section id="help" class="screen hidden">
+  <div class="panel wide">
+    <h2>HOW TO PLAY</h2>
+    <div class="cols">
+      <div><h3>Controls</h3>
+        <table>
+          <tr><td>W A S D</td><td>Move</td></tr><tr><td>Mouse</td><td>Look</td></tr>
+          <tr><td>Shift</td><td>Sprint (uses stamina)</td></tr><tr><td>C or Ctrl</td><td>Crouch (quiet)</td></tr>
+          <tr><td>E</td><td>Interact / pick up / read</td></tr><tr><td>F</td><td>Flashlight</td></tr>
+          <tr><td>R</td><td>Use a spare battery</td></tr><tr><td>H</td><td>Use a medkit</td></tr>
+          <tr><td>Tab</td><td>Inventory (6 slots)</td></tr><tr><td>J</td><td>Journal and notes</td></tr>
+          <tr><td>Esc</td><td>Pause</td></tr>
+        </table></div>
+      <div><h3>The rules</h3>
+        <ul>
+          <li>Something is in the building with you.</li>
+          <li><b>It only moves when you are not looking at it.</b> Keep it in your view and it freezes.</li>
+          <li>It gets smarter, faster and bolder the longer you survive.</li>
+          <li>It hates light, but lights fail. Spare batteries are rare.</li>
+          <li>Lamp-lit rooms are safe. Usually.</li>
+          <li>Read every note. Something happened here.</li>
+          <li>There are three endings.</li>
+        </ul></div>
+    </div>
+    <button class="back" data-back="menu">BACK</button>
+  </div>
+</section>
+
+<!-- Settings -->
+<section id="settings" class="screen hidden">
+  <div class="panel">
+    <h2>SETTINGS</h2>
+    <label>Master volume <input type="range" id="sMaster" min="0" max="1" step="0.05"></label>
+    <label>Music volume <input type="range" id="sMusic" min="0" max="1" step="0.05"></label>
+    <label>Effects volume <input type="range" id="sSfx" min="0" max="1" step="0.05"></label>
+    <label>Mouse sensitivity <input type="range" id="sSens" min="0.3" max="2.5" step="0.05"></label>
+    <label>Field of view <input type="range" id="sFov" min="60" max="100" step="1"></label>
+    <label>Brightness <input type="range" id="sBright" min="0.6" max="2" step="0.05"></label>
+    <label>Graphics quality
+      <select id="sQual"><option value="low">Low (fast)</option><option value="medium">Medium</option><option value="high">High (shadows)</option></select></label>
+    <label class="chk"><input type="checkbox" id="sBob"> Head bob</label>
+    <label class="chk"><input type="checkbox" id="sGrain"> Film grain</label>
+    <button class="back" id="setBack">BACK</button>
+  </div>
+</section>
+
+<!-- Pause -->
+<section id="pause" class="screen hidden">
+  <div class="panel">
+    <h2>PAUSED</h2>
+    <button id="pResume">RESUME</button>
+    <button id="pSettings">SETTINGS</button>
+    <button id="pHelp">CONTROLS</button>
+    <button id="pMenu">SAVE AND QUIT TO MENU</button>
+  </div>
+</section>
+
+<!-- click to continue -->
+<section id="clickgo" class="screen hidden"><div class="panel"><h2>CLICK TO CONTINUE</h2><p>The game is waiting.</p></div></section>
+
+<!-- Game over -->
+<section id="dead" class="screen hidden">
+  <h2 class="redtitle" id="deadTitle">YOU LOOKED AWAY</h2>
+  <p id="deadText"></p>
+  <div class="row"><button id="dRetry">TRY AGAIN</button><button id="dMenu">MAIN MENU</button></div>
+</section>
+
+<!-- Ending -->
+<section id="ending" class="screen hidden">
+  <h2 id="endTitle"></h2>
+  <p id="endText" class="endtext"></p>
+  <p id="endStats" class="stats"></p>
+  <button id="eMenu">MAIN MENU</button>
+</section>
+
+<!-- Chapter card -->
+<section id="chapter" class="screen hidden clear"><div class="cnum" id="cNum"></div><h2 id="cTitle"></h2><p id="cSub"></p></section>
+
+<!-- Modals -->
+<section id="note" class="screen hidden clear"><div class="paper"><h3 id="noteTitle"></h3><div class="by" id="noteBy"></div><pre id="noteText"></pre><button id="noteClose">CLOSE [E]</button></div></section>
+
+<section id="inventory" class="screen hidden clear"><div class="panel"><h2>INVENTORY <small id="invCount"></small></h2><div id="invList"></div><p class="hint">Click an item to use it. Right-click or press the Drop button to drop it.</p><button id="invClose">CLOSE [TAB]</button></div></section>
+
+<section id="journal" class="screen hidden clear"><div class="panel wide"><h2>JOURNAL</h2><div id="jInfo"></div><h3>Notes collected</h3><div id="jNotes"></div><button id="jClose">CLOSE [J]</button></div></section>
+
+<section id="keypad" class="screen hidden clear"><div class="panel narrow"><h2>SAFE</h2><div id="kDisp">----</div><div id="kGrid"></div><div class="row"><button id="kClear">CLEAR</button><button id="kClose">LEAVE</button></div><p id="kMsg"></p></div></section>
+
+<section id="choice" class="screen hidden clear"><div class="panel"><h2 id="chTitle"></h2><p id="chText"></p><div id="chBtns"></div></div></section>
+
+<section id="elev" class="screen hidden clear"><div class="panel narrow"><h2>ELEVATOR</h2><div id="elBtns"></div><p id="elMsg"></p><button id="elClose">STEP BACK</button></div></section>
+
+<noscript><p style="color:#fff;padding:2em">This game needs JavaScript.</p></noscript>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/util.js"></script>
+<script src="js/textures.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/input.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/props.js"></script>
+<script src="js/world.js"></script>
+<script src="js/story.js"></script>
+<script src="js/player.js"></script>
+<script src="js/creature.js"></script>
+<script src="js/events.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
